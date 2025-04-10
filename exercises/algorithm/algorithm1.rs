@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +29,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T : Clone + PartialOrd> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T : Clone + PartialOrd> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,14 +69,46 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(a:LinkedList<T>,b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merge_list = LinkedList::new();
+        let mut a_curr = a.start;
+        let mut b_curr = b.start;
+
+        while a_curr.is_some() || b_curr.is_some() {
+            let a_val =a_curr.map(|p| unsafe { &(*p.as_ptr()).val });
+            let b_val =b_curr.map(|p| unsafe { &(*p.as_ptr()).val });
+            
+            if a_val.is_none() {
+                unsafe {
+                    let node_ptr =b_curr.unwrap();
+                    merge_list.add((*node_ptr.as_ptr()).val.clone());
+                    b_curr =(*node_ptr.as_ptr()).next;
+                }
+            } else if b_val.is_none() {
+                unsafe {
+                    let node_ptr =a_curr.unwrap();
+                    merge_list.add((*node_ptr.as_ptr()).val.clone());
+                    a_curr =(*node_ptr.as_ptr()).next;
+                }
+            } else {
+                if a_val.unwrap() <= b_val.unwrap() {
+                    unsafe {
+                        let node_ptr =a_curr.unwrap();
+                        merge_list.add((*node_ptr.as_ptr()).val.clone());
+                        a_curr =(*node_ptr.as_ptr()).next;
+                    }
+                } else {
+                    unsafe {
+                        let node_ptr =b_curr.unwrap();
+                        merge_list.add((*node_ptr.as_ptr()).val.clone());
+                        b_curr =(*node_ptr.as_ptr()).next;
+                    }
+                }
+            }
         }
+        merge_list
 	}
 }
 
